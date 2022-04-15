@@ -1,58 +1,144 @@
-import { Button, Select, Table, Tag, Tabs, message } from "antd";
+import { Button, Select, Table, notification } from "antd";
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
-import farmOrderApis from "../../apis/farmOrderApis";
 import confirm from "antd/lib/modal/confirm";
 import { useSelector } from "react-redux";
 import shipmentsApis from "../../apis/shipmentsApis";
+import userApis from "../../apis/userApis";
 
-const ShipmentList = ({ listDriver }) => {
+const ShipmentList = () => {
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [totalRecord, setToTalRecord] = useState(1);
   const [changePlag, setChangePlag] = useState(true);
   const [dataTable, setDataTable] = useState([]);
   const data = [];
-  const user = useSelector(state => state.user);
-  let listTask = [];
+  const user = useSelector((state) => state.user);
+  const [listDriver, setListDriver] = useState();
+  const warehouse = useSelector((state) => state.warehouse);
+  const [listDriverClone, setListDriverClone] = useState([]);
+  const [listTask, setListTask] = useState([]);
   const { Option } = Select;
+
   useEffect(() => {
     setLoading(true);
-    const params = {
-      warehouseManagerId: user.id,
-      page: page,
-      flag: false,
-    };
 
     const fetchData = async () => {
-      const result = await shipmentsApis
-        .getShipmentList(params)
+      const params1 = {
+        wareHouseId: warehouse.id,
+        type: 2,
+      };
+      await userApis.getListDriverByWarehouseId(params1).then((result) => {
+        setListDriver(result);
+        let list = [];
+        result.map((driver) => {
+          list.push(driver);
+        });
+        setListDriverClone(list);
+      }).catch(err => {});
+      const params2 = {
+        warehouseManagerId: user.id,
+        page: page,
+        flag: false,
+      };
+      await shipmentsApis
+        .getShipmentList(params2)
+        .then((result) => {
+          setToTalRecord(result.metadata.total);
+          let index = 1;
+          result &&
+            result.data.map((shipment) => {
+              data.push({ index: index++, ...shipment });
+            });
+          setDataTable(data);
+        })
         .catch((err) => {
-          message.error({
+          notification.error({
             duration: 2,
-            content: "Có lỗi xảy ra trong quá trình tải dữ liệu!",
+            message: "Có lỗi xảy ra trong quá trình tải dữ liệu!",
           });
           setLoading(false);
         });
-      setToTalRecord(result.metadata.total);
-      let index = 1;
-      result &&
-        result.data.map((shipment) => {
-          data.push({index: index++, ...shipment});
-        });
-      setDataTable(data);
+
       setLoading(false);
     };
     fetchData();
   }, [page, changePlag]);
   const hanldeSelectedDriver = (props) => {
-    listTask = listTask.filter((item) => item.id !== props.id);
-    listTask.push({ driverId: props.driverId, id: props.id });
-    listTask = listTask.filter((item) => item.driverId !== "0");
+    let list = [...listTask];
+    list = list.filter((item) => item.id !== props.id);
+    list.push({ driverId: props.driverId, id: props.id });
+    list = list.filter((item) => item.driverId !== "0");
+    let list2 = props.listDriver;
+    list.forEach((task) => {
+      list2 = list2.filter((driver) => driver.id !== task.driverId);
+    });
+    setListTask(list);
+    setListDriver(list2);
   };
-  const showDeleteConfirm = () => {
+  const showCreateShipmentConfirm = () => {
+    confirm({
+      title: "Bạn có chắc muốn tạo mới chuyến hàng!",
+      icon: <ExclamationCircleOutlined />,
+      content:
+        "Việc tạo mới chuyến hàng sẽ xóa các chuyến hàng cũ mà chưa có tài xế đảm nhận!",
+      okText: "Tạo",
+      cancelText: "Hủy",
+      onOk() {
+        setLoading(true);
+        const createShipment = async () => {
+          let deleteSuccess = false;
+          await shipmentsApis
+            .deleteShipment(warehouse.id)
+            .then((rs) => {
+              console.log(rs);
+              deleteSuccess = true;
+            })
+            .catch(() => {
+              notification.error({
+                duration: 3,
+                message: "Có lỗi xảy ra trong quá trình xử lý!",
+                style: { fontSize: 16 },
+              });
+            });
+          if (deleteSuccess) {
+            await shipmentsApis
+              .createShipment(warehouse.id)
+              .then((result) => {
+                console.log(result);
+                setChangePlag(!changePlag);
+              })
+              .catch((err) => {
+                if (err.message === "Network Error") {
+                  notification.error({
+                    duration: 3,
+                    message: "Mất kết nối mạng",
+                    style: { fontSize: 16 },
+                  });
+                } else if (err.response.status === 404) {
+                  notification.error({
+                    duration: 3,
+                    message: "Có lỗi xảy ra trong quá trình xử lý!",
+                    style: { fontSize: 16 },
+                  });
+                } else {
+                  notification.error({
+                    duration: 3,
+                    message: err.response.data.error.message,
+                    style: { fontSize: 16 },
+                  });
+                }
+              });
+          }
+          setLoading(false);
+        };
+        createShipment();
+      },
+      onCancel() {},
+    });
+  };
+  const showSaveConfirm = () => {
     confirm({
       title: "Bạn có chắc muốn lưu thay đổi này",
       icon: <ExclamationCircleOutlined />,
@@ -60,22 +146,25 @@ const ShipmentList = ({ listDriver }) => {
       okText: "Lưu",
       cancelText: "Hủy",
       onOk() {
+        setLoading(true);
+        console.log(listTask);
         const saveDriverTask = async () => {
           const result = await shipmentsApis
             .assignDriver(listTask)
             .catch((err) => {
-              message.error({
+              notification.error({
                 duration: 2,
-                content: "Có lỗi xảy ra trong quá trình xử lý!",
+                message: "Có lỗi xảy ra trong quá trình xử lý!",
               });
             });
           if (result === "Update Successfully!") {
-            message.success({
+            notification.success({
               duration: 2,
-              content: "Lưu thành công!",
+              message: "Lưu thành công!",
             });
             setChangePlag(!changePlag);
           }
+          setLoading(false);
         };
         saveDriverTask();
       },
@@ -84,15 +173,15 @@ const ShipmentList = ({ listDriver }) => {
   };
   const handleSave = () => {
     if (listTask.length === 0) {
-      message.error({
+      notification.error({
         duration: 2,
-        content: "Vui lòng chọn tài xế phụ trách!",
+        message: "Vui lòng chọn tài xế phụ trách!",
       });
-    } else showDeleteConfirm();
+    } else showSaveConfirm();
   };
   const columns = [
     {
-      title: "Số thứ tự",
+      title: "STT",
       dataIndex: "index",
       key: "index",
     },
@@ -106,11 +195,11 @@ const ShipmentList = ({ listDriver }) => {
       dataIndex: "from",
       key: "from",
     },
-    {
-      title: "Điểm đến",
-      dataIndex: "to",
-      key: "to",
-    },
+    // {
+    //   title: "Điểm đến",
+    //   dataIndex: "to",
+    //   key: "to",
+    // },
     {
       title: "Tổng Khối lượng",
       dataIndex: "totalWeight",
@@ -122,13 +211,14 @@ const ShipmentList = ({ listDriver }) => {
       dataIndex: "driverName",
       key: "dirverName",
       render: (text, record) => (
-        <div className="campaign_name">
+        <div>
           <Select
             defaultValue="0"
             onSelect={(currentValue) => {
               hanldeSelectedDriver({
                 driverId: currentValue,
                 id: record.id,
+                listDriver: listDriverClone,
               });
             }}
           >
@@ -159,8 +249,6 @@ const ShipmentList = ({ listDriver }) => {
   return (
     <>
       <div>
-        {/* <h1>Các đơn hàng chưa phân công</h1> */}
-
         <Button
           type="primary"
           size="large"
@@ -176,6 +264,21 @@ const ShipmentList = ({ listDriver }) => {
         >
           Lưu thay đổi
         </Button>
+        <Button
+          type="primary"
+          size="large"
+          style={{
+            float: "right",
+            marginRight: 20,
+            marginBottom: 30,
+            borderRadius: 10,
+          }}
+          onClick={() => {
+            showCreateShipmentConfirm();
+          }}
+        >
+          Tạo mới chuyến hàng
+        </Button>
 
         <Table
           columns={columns}
@@ -190,7 +293,6 @@ const ShipmentList = ({ listDriver }) => {
           }}
           loading={loading}
           style={{ margin: 50 }}
-          // onRow={(record, rowIndex) => setOnRow()}
         />
       </div>
     </>

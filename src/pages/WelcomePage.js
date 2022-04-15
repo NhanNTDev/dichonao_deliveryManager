@@ -4,12 +4,13 @@ import {
   MenuFoldOutlined,
   UserOutlined,
   ShoppingOutlined,
-  HomeOutlined,
+  DatabaseOutlined,
+  CarFilled,
 } from "@ant-design/icons";
 import { Link, Route, Routes, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import Farm from "./Farm";
-import FarmDetails from "./FarmDetails";
+import FarmOrder from "./FarmOrder";
+import FarmOrderDetails from "./FarmOrderDetails";
 import Shipment from "./Shipment";
 import { useDispatch, useSelector } from "react-redux";
 import PrivateRoute from "../router/PrivateRoute";
@@ -19,6 +20,8 @@ import Order from "./Order";
 import Driver from "./Driver";
 import { logout } from "../stateManager/userSlice";
 import OrderDetail from "./OrderDetail";
+import Login from "./Login";
+import { setWarehouse } from "../stateManager/warehouseSlice";
 
 const { Header, Sider, Content } = Layout;
 
@@ -27,6 +30,7 @@ const WelcomePage = () => {
     collapsed: false,
   });
   const user = useSelector((state) => state.user);
+  const warehouse = useSelector((state) => state.warehouse);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const toggle = () => {
@@ -37,14 +41,17 @@ const WelcomePage = () => {
 
   const handleLogout = () => {
     const logoutAction = logout();
+    const resetWarehouse = setWarehouse(null);
     dispatch(logoutAction);
+    dispatch(resetWarehouse);
     navigate("/login");
-  }
+  };
 
   return (
-    <Layout hasSider={true} style={{minHeight: 1000}}>
-      {user === null ? null : (
+    <Layout hasSider={true} style={{ minHeight: 1000 }}>
+      {user === null || warehouse === null ? null : (
         <Sider
+          style={{ marginTop: 100 }}
           theme="dark"
           trigger={null}
           collapsible
@@ -52,19 +59,20 @@ const WelcomePage = () => {
           width={300}
         >
           <div className="logo" />
+
           <Menu
             theme="dark"
             style={{ marginTop: 200 }}
             defaultSelectedKeys={["0"]}
           >
-            <Menu.Item key="0" icon={<HomeOutlined />}>
-              <Link to="/">Dash board</Link>
+            <Menu.Item key="0" icon={<DatabaseOutlined />}>
+              <Link to="/dashboard">Dash board</Link>
             </Menu.Item>
             <Menu.Item key="1" icon={<ShoppingOutlined />}>
               <Link to="/farm">Đơn hàng cần thu gom</Link>
             </Menu.Item>
-            <Menu.Item key="2" icon={<ShoppingOutlined />}>
-              <Link to="/shipment">Đơn hàng cần vận chuyển</Link>
+            <Menu.Item key="2" icon={<CarFilled />}>
+              <Link to="/shipment">Chuyến hàng cần vận chuyển</Link>
             </Menu.Item>
             <Menu.Item key="3" icon={<ShoppingOutlined />}>
               <Link to="/order">Đơn hàng cần giao</Link>
@@ -76,42 +84,47 @@ const WelcomePage = () => {
         </Sider>
       )}
       <Layout className="site-layout">
-        {user === null ? null : (
+        {user === null || warehouse === null ? null : (
           <Header
             className="site-layout-background"
-            style={{ padding: 0, backgroundColor: "#1890ff", display: "inline" }}
+            style={{
+              padding: 0,
+              backgroundColor: "#1890ff",
+              display: "inline",
+              height: 100,
+              marginLeft: -300,
+            }}
           >
-            {" "}
-            <>
-              {state.collapsed ? (
-                <>
-                <div className="trigger" onClick={toggle}>
-                  <MenuUnfoldOutlined style={{ fontSize: 32 }} />
-                </div>
-                </>
-              ) : (
-                <>
-                <div className="trigger" onClick={toggle}>
-                  <MenuFoldOutlined style={{ fontSize: 32 }} />
-                </div>
-                </>
-              )}
-              <div style={{textAlign: 'right', marginRight: 200, marginTop: -60}}>Chào mừng <strong>{user.name}</strong> {"    "} <Button onClick={handleLogout}>Đăng xuất</Button></div>
-              
-            </>
+            <div
+              style={{ textAlign: "right", marginRight: 250, marginTop: 20 }}
+            >
+              <h5 style={{ display: "inline" }}>
+                Chào mừng <strong style={{ color: "red" }}>{user.name}</strong>{" "}
+                {"    "}{" "}
+              </h5>
+              <Button onClick={handleLogout}>Đăng xuất</Button>
+            </div>
           </Header>
         )}
         <Content
-          className="site-layout-background"
+          className="site-layout-background bg-light"
           style={{
-            margin: "24px 16px",
-            padding: 24,
             minHeight: 280,
           }}
         >
+          <div className="trigger" onClick={toggle}>
+            {user !== null &&
+              warehouse !== null &&
+              (state.collapsed ? (
+                <MenuUnfoldOutlined style={{ fontSize: 32 }} />
+              ) : (
+                <MenuFoldOutlined style={{ fontSize: 32 }} />
+              ))}
+          </div>
           <Routes>
+            <Route path="*" element={<Login />}></Route>
             <Route
-              path="*"
+              path="/dashboard"
               element={
                 <PrivateRoute>
                   <DashBoard />
@@ -122,15 +135,15 @@ const WelcomePage = () => {
               path="/farm"
               element={
                 <PrivateRoute>
-                  <Farm />
+                  <FarmOrder />
                 </PrivateRoute>
               }
             />
             <Route
-              path="/farmDetails"
+              path="/farmOrderDetails"
               element={
                 <PrivateRoute>
-                  <FarmDetails />
+                  <FarmOrderDetails />
                 </PrivateRoute>
               }
             />

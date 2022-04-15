@@ -10,7 +10,7 @@ const orderApis = {
     return axiosClient.put(url, data);
   },
   getOderDetail(id) {
-    const url = `orders/${id}`;
+    const url = `/orders/${id}`;
     return axiosClient.get(url);
   }
   

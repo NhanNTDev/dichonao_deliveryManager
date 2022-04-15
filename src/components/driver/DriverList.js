@@ -1,10 +1,10 @@
-import { Button, Select, Table, Tag, Tabs, message } from "antd";
+import { Button, Table, Tag, notification } from "antd";
 import { useEffect, useState } from "react";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
-import farmOrderApis from "../../apis/farmOrderApis";
 import confirm from "antd/lib/modal/confirm";
 import userApis from "../../apis/userApis";
+import CreateDriver from "../driver/CreateDriver";
 
 const DriverList = ({ type }) => {
   const [loading, setLoading] = useState(false);
@@ -13,6 +13,9 @@ const DriverList = ({ type }) => {
   const [dataTable, setDataTable] = useState([]);
   const data = [];
   const warehouse = useSelector((state) => state.warehouse);
+  const reload = () => {
+    setChangePlag(!changePlag);
+  };
   useEffect(() => {
     setLoading(true);
     const params = {
@@ -24,9 +27,9 @@ const DriverList = ({ type }) => {
       const result = await userApis
         .getListAllDriverByWarehouseId(params)
         .catch((err) => {
-          message.error({
+          notification.error({
             duration: 2,
-            content: "Có lỗi xảy ra trong quá trình tải dữ liệu!",
+            message: "Có lỗi xảy ra trong quá trình tải dữ liệu!",
           });
           setLoading(false);
         });
@@ -36,7 +39,6 @@ const DriverList = ({ type }) => {
           data.push({ index: index++, ...driver });
         });
       setDataTable(data);
-      console.log(result);
       setLoading(false);
     };
     fetchData();
@@ -56,15 +58,15 @@ const DriverList = ({ type }) => {
           const result = await userApis
             .banOrUnbanUser(props.id)
             .catch((err) => {
-              message.error({
+              notification.error({
                 duration: 2,
-                content: "Có lỗi xảy ra trong quá trình xử lý!",
+                message: "Có lỗi xảy ra trong quá trình xử lý!",
               });
             });
           if (result === "Successfully") {
-            message.success({
+            notification.success({
               duration: 2,
-              content: "Khóa tài khoản thành công!",
+              message: "Khóa tài khoản thành công!",
             });
             setChangePlag(!changePlag);
           }
@@ -88,15 +90,15 @@ const DriverList = ({ type }) => {
           const result = await userApis
             .banOrUnbanUser(props.id)
             .catch((err) => {
-              message.error({
+              notification.error({
                 duration: 2,
-                content: "Có lỗi xảy ra trong quá trình xử lý!",
+                message: "Có lỗi xảy ra trong quá trình xử lý!",
               });
             });
           if (result === "Successfully") {
-            message.success({
+            notification.success({
               duration: 2,
-              content: "Mở khóa tài khoản thành công!",
+              message: "Mở khóa tài khoản thành công!",
             });
             setChangePlag(!changePlag);
           }
@@ -112,11 +114,7 @@ const DriverList = ({ type }) => {
       dataIndex: "index",
       key: "index",
     },
-    {
-      title: "ID",
-      dataIndex: "id",
-      key: "id",
-    },
+
     {
       title: "Tên tài xế",
       dataIndex: "name",
@@ -134,15 +132,28 @@ const DriverList = ({ type }) => {
       key: "gender",
     },
     {
-      title: "Ngày sinh",
-      dataIndex: "dateOfBirth",
-      key: "dateOfBirth",
+      title: "Địa chỉ",
+      dataIndex: "address",
+      key: "address",
     },
+    // {
+    //   title: "Ngày sinh",
+    //   dataIndex: "dateOfBirth",
+    //   key: "dateOfBirth",
+    // },
     {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
-      render: (text) => <>{text === "Đã bị khóa" ? <Tag color="red">{text}</Tag> : <Tag color="geekblue">{text}</Tag> }</>,
+      render: (text) => (
+        <>
+          {text === "Đã bị khóa" ? (
+            <Tag color="red">{text}</Tag>
+          ) : (
+            <Tag color="green">{text}</Tag>
+          )}
+        </>
+      ),
     },
     {
       title: "Hành động",
@@ -175,6 +186,7 @@ const DriverList = ({ type }) => {
   return (
     <>
       <div>
+        <CreateDriver successCallback={reload} />
         <Table
           columns={columns}
           dataSource={dataTable}
@@ -186,7 +198,6 @@ const DriverList = ({ type }) => {
             },
           }}
           loading={loading}
-          style={{ margin: 50 }}
         />
       </div>
     </>

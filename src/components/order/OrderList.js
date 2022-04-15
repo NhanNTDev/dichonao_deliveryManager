@@ -1,15 +1,14 @@
-import { Button, Select, Table, Tag, Tabs, message } from "antd";
+import { Button, Select, Table, Tag, Tabs, message, notification } from "antd";
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
-import farmOrderApis from "../../apis/farmOrderApis";
 import confirm from "antd/lib/modal/confirm";
 import orderApis from "../../apis/orderApis";
 
+
 const OrderList = ({ listDriver }) => {
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [totalRecord, setToTalRecord] = useState(1);
   const [changePlag, setChangePlag] = useState(true);
@@ -30,9 +29,9 @@ const OrderList = ({ listDriver }) => {
       const result = await orderApis
         .getOrderList(params)
         .catch((err) => {
-          message.error({
+          notification.error({
             duration: 2,
-            content: "Có lỗi xảy ra trong quá trình tải dữ liệu!",
+            message: "Có lỗi xảy ra trong quá trình tải dữ liệu!",
           });
           setLoading(false);
         });
@@ -59,22 +58,24 @@ const OrderList = ({ listDriver }) => {
       okText: "Lưu",
       cancelText: "Hủy",
       onOk() {
+        setLoading(true);
         const saveDriverTask = async () => {
           const result = await orderApis
             .assignDriver(listTask)
             .catch((err) => {
-              message.error({
+              notification.error({
                 duration: 2,
-                content: "Có lỗi xảy ra trong quá trình xử lý!",
+                message: "Có lỗi xảy ra trong quá trình xử lý!",
               });
             });
           if (result === "Update successfully!") {
-            message.success({
+            notification.success({
               duration: 2,
-              content: "Lưu thành công!",
+              message: "Lưu thành công!",
             });
             setChangePlag(!changePlag);
           }
+          setLoading(false);
         };
         saveDriverTask();
       },
@@ -83,9 +84,9 @@ const OrderList = ({ listDriver }) => {
   };
   const handleSave = () => {
     if (listTask.length === 0) {
-      message.error({
+      notification.error({
         duration: 2,
-        content: "Vui lòng chọn tài xế phụ trách!",
+        message: "Vui lòng chọn tài xế phụ trách!",
       });
     } else showDeleteConfirm();
   };

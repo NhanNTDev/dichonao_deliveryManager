@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import farmOrderApis from "../apis/farmOrderApis";
-import { Table, Tag, Button, message, Select } from "antd";
+import { Table, Tag, Button, message, Select, notification } from "antd";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import userApis from "../apis/userApis";
 import confirm from "antd/lib/modal/confirm";
@@ -61,15 +61,15 @@ const OrderDetail = () => {
           const result = await orderApis
             .assignDriver(listTask)
             .catch((err) => {
-              message.error({
+              notification.error({
                 duration: 2,
-                content: "Có lỗi xảy ra trong quá trình xử lý!",
+                message: "Có lỗi xảy ra trong quá trình xử lý!",
               });
             });
           if (result === "Update Successfully!") {
-            message.success({
+            notification.success({
               duration: 2,
-              content: "Lưu thành công!",
+              message: "Lưu thành công!",
             });
             setChangePlag(!changePlag);
           }
@@ -81,9 +81,9 @@ const OrderDetail = () => {
   };
   const handleSave = () => {
     if (listTask.length === 0) {
-      message.error({
+      notification.error({
         duration: 2,
-        content: "Vui lòng chọn tài xế phụ trách!",
+        message: "Vui lòng chọn tài xế phụ trách!",
       });
     } else showDeleteConfirm();
   };

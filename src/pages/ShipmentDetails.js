@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import farmOrderApis from "../apis/farmOrderApis";
-import { Table, Tag, Button, message, Select } from "antd";
+import { Table, Tag, Button, Select, notification, Timeline } from "antd";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import userApis from "../apis/userApis";
 import confirm from "antd/lib/modal/confirm";
 import shipmentsApis from "../apis/shipmentsApis";
+import { useSelector } from "react-redux";
+import { parseTimeDMY } from "../utils/Utils";
 const { Option } = Select;
 const ShipmentDetails = () => {
   const [loading, setLoading] = useState(false);
@@ -15,13 +16,13 @@ const ShipmentDetails = () => {
   const [dataTable, setDataTable] = useState();
   const [listDriver, setListDriver] = useState();
   const [changePlag, setChangePlag] = useState(true);
+  const warehouse = useSelector((state) => state.warehouse);
   let listTask = [];
-  let listOrder = [];
 
   useEffect(() => {
     const fetchDriver = async () => {
       const params = {
-        wareHouseId: 3,
+        wareHouseId: warehouse.id,
         type: 2,
       };
       const result = await userApis.getListDriverByWarehouseId(params);
@@ -33,14 +34,20 @@ const ShipmentDetails = () => {
   useEffect(() => {
     setLoading(true);
     const fetchData = async () => {
-      const result = await shipmentsApis.getShipmentDetails(shipmentId);
-      let index = 1;
-      result.orders.map((order) => {
-        listOrder.push({ index: index, ...order });
-        index++;
-      });
-      setShipment(result);
-      setDataTable(listOrder);
+      await shipmentsApis.getShipmentDetails(shipmentId).then((result) => {
+        console.log(result);
+        let index = 1;
+        let listOrder = [];
+        result.orders
+          .map((order) => {
+            listOrder.push({ index: index, ...order });
+            index++;
+          })
+          
+        setShipment(result);
+        setDataTable(listOrder);
+      }).catch((err) => {});
+
       setLoading(false);
     };
     fetchData();
@@ -58,15 +65,15 @@ const ShipmentDetails = () => {
           const result = await shipmentsApis
             .assignDriver(listTask)
             .catch((err) => {
-              message.error({
+              notification.error({
                 duration: 2,
-                content: "Có lỗi xảy ra trong quá trình xử lý!",
+                message: "Có lỗi xảy ra trong quá trình xử lý!",
               });
             });
           if (result === "Update Successfully!") {
-            message.success({
+            notification.success({
               duration: 2,
-              content: "Lưu thành công!",
+              message: "Lưu thành công!",
             });
             setChangePlag(!changePlag);
           }
@@ -78,9 +85,9 @@ const ShipmentDetails = () => {
   };
   const handleSave = () => {
     if (listTask.length === 0) {
-      message.error({
+      notification.error({
         duration: 2,
-        content: "Vui lòng chọn tài xế phụ trách!",
+        message: "Vui lòng chọn tài xế phụ trách!",
       });
     } else showUpdateConfirm();
   };
@@ -103,30 +110,47 @@ const ShipmentDetails = () => {
       key: "status",
       render: (text) => <Tag color="geekblue">{text}</Tag>,
     },
-    { title: "Ghi chú", dataIndex: "note", key: "note" },
-    { title: "Ngày tạo", dataIndex: "createAt", key: "createAt" },
+    // { title: "Ghi chú", dataIndex: "note", key: "note" },
+    {
+      title: "Ngày tạo",
+      dataIndex: "createAt",
+      key: "createAt",
+      render: (text) => <div>{parseTimeDMY(text)}</div>,
+    },
     // { title: "Hành động", key: "operation", render: () => <a>Publish</a> },
   ];
 
   return (
     <div style={{ marginLeft: 100, marginRight: 100 }}>
+      <h2>
+        <strong>Thông tin chuyến hàng</strong>
+      </h2>
       {shipment && (
         <div style={{ marginLeft: 100, marginBottom: 30 }}>
-          <h1>
-            <strong>Mã chuyến hàng: </strong> {shipment.code}
-          </h1>
-          <h1>
-            <strong>Điểm đi: </strong> {shipment.from}
-          </h1>
-          <h1>
-            <strong>Điểm đến </strong> {shipment.to}
-          </h1>
+          <h4>
+            <strong>1. Mã chuyến hàng: </strong> <span>{shipment.code}</span>
+          </h4>
+          <h4>
+            <strong>2. Điểm đi: </strong> {shipment.from}
+          </h4>
+          <h4>
+            <strong style={{ display: "inline" }}>3. Điểm đến: </strong>{" "}
+            {shipment.to}
+            <Timeline style={{ marginLeft: 200 }}>
+              {shipment && shipment.shipmentDestinations.map(destinations => (
+                 <Timeline.Item>
+                 <h4>{destinations.address}</h4>
+               </Timeline.Item>
+              ))}
+            </Timeline>
+          </h4>
+
           <br />
           <br />
         </div>
       )}
       {shipment && (
-        <h1
+        <h3
           style={{
             display: "inline",
             marginBottom: 50,
@@ -159,7 +183,7 @@ const ShipmentDetails = () => {
                   })}
               </Select>{" "}
               <Button
-                style={{ marginLeft: 50 }}
+                style={{ marginLeft: 10 }}
                 type="primary"
                 onClick={handleSave}
               >
@@ -169,11 +193,13 @@ const ShipmentDetails = () => {
           ) : (
             <>{shipment.driverName}</>
           )}
-        </h1>
+        </h3>
       )}
       {shipment && (
         <>
-          <h2 style={{ textAlign: "left"}}>Danh sách đơn hàng</h2>
+          <h2 style={{ textAlign: "left" }}>
+            <strong>Danh sách đơn hàng</strong>
+          </h2>
           <Table
             className="components-table-demo-nested"
             columns={columns}

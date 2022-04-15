@@ -14,6 +14,14 @@ const shipmentsApis = {
   getShipmentDetails(id) {
       const url =`/shipments/${id}`;
       return axiosClient.get(url);
+  },
+  deleteShipment(warehouseId) {
+      const url = `/shipments/${warehouseId}`;
+      return axiosClient.delete(url);
+  },
+  createShipment(warehouseId) {
+    const url = `/shipments/routing-problem/${warehouseId}`;
+    return axiosClient.post(url);
   }
   
 };

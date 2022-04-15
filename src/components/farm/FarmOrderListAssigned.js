@@ -1,37 +1,34 @@
-import { Table, Tag, message, notification } from "antd";
+import { Table, Tag, notification } from "antd";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { useNavigate, Link } from "react-router-dom";
-import orderApis from "../../apis/orderApis";
+import { Link } from "react-router-dom";
+import farmOrderApis from "../../apis/farmOrderApis";
 
-const OrderListAssigned = () => {
+const FarmOrderListAssigned = () => {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
-  const [totalRecord, setToTalRecord] = useState(1);
   const [changePlag, setChangePlag] = useState(true);
   const [dataTable, setDataTable] = useState([]);
   const data = [];
-  const user = useSelector((state) => state.user);
+  const warehouse = useSelector(state => state.warehouse)
   useEffect(() => {
     setLoading(true);
-    const params = {
-      warehouseManagerId: user.id,
-      page: page,
-      flag: true,
-    };
+    
     const fetchData = async () => {
-      await orderApis
-        .getOrderList(params)
+      await farmOrderApis
+        .getFarmOrderForDelivery({warehouseId: warehouse.id, asigned: true})
         .then((result) => {
-          setToTalRecord(result.metadata.total);
+          console.log(result);
           let index = 1;
           result &&
-            result.data.map((order) => {
-              data.push({ index: index++, ...order });
+            result.map((colection) => {
+              data.push({ index: index++, ...colection });
             });
           setDataTable(data);
+          console.log(data);
         })
         .catch((err) => {
+          console.log(err);
           notification.error({
             duration: 2,
             message: "Có lỗi xảy ra trong quá trình tải dữ liệu!",
@@ -49,42 +46,29 @@ const OrderListAssigned = () => {
       dataIndex: "index",
       key: "index",
     },
+  
     {
-      title: "Mã đơn hàng",
-      dataIndex: "code",
-      key: "code",
+      title: "Mã nhóm đơn hàng",
+      dataIndex: "collectionCode",
+      key: "collectionCode",
     },
     {
-      title: "Tên khách hàng",
-      dataIndex: "customerName",
-      key: "customerName",
-    },
-    {
-      title: "Địa chỉ",
-      dataIndex: "address",
-      key: "address",
-    },
-    {
-      title: "Số điện thoại",
-      dataIndex: "phone",
-      key: "phone",
-    },
-    {
-      title: "Khối lượng",
-      dataIndex: "weight",
-      key: "weight",
+      title: "Tổng khối lượng",
+      dataIndex: "totalWeight",
+      key: "totalWeight",
       render: (text) => <div>{text + " kg"}</div>,
     },
     {
-      title: "Giá trị",
-      dataIndex: "total",
-      key: "total",
+      title: "Số nông trại",
+      dataIndex: "countFarm",
+      key: "countFarm",
+      render: (text, record) => <div>{record.farms.length}</div>,
     },
     {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
-      render: (text) => <Tag color="geekblue">{text}</Tag>,
+      render: (text) => <Tag color="geekblue">Đang chờ lấy hàng</Tag>,
     },
     {
       title: "Người phụ trách",
@@ -96,32 +80,30 @@ const OrderListAssigned = () => {
       dataIndex: "action",
       key: "action",
       render: (text, record) => (
-        <Link to={`/orderDetails?id=${record.id}`}>Xem chi tiết</Link>
+        <Link to={`/farmOrderDetails?collectionCode=${record.collectionCode}`}>Xem chi tiết</Link>
       ),
     },
   ];
   return (
     <>
       <div className="wrapper">
-        {/* <h1>Các đơn hàng chưa phân công</h1> */}
         <Table
           columns={columns}
           dataSource={dataTable}
           pagination={{
             position: ["bottomCenter"],
             pageSize: 10,
-            total: totalRecord,
+            total: dataTable.length,
             onChange: (page) => {
               setPage(page);
             },
           }}
           loading={loading}
           style={{ margin: 50 }}
-          // onRow={(record, rowIndex) => setOnRow()}
         />
       </div>
     </>
   );
 };
 
-export default OrderListAssigned;
+export default FarmOrderListAssigned;

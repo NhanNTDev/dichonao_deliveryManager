@@ -1,56 +1,83 @@
-import { Button, Select, Table, Tag, Tabs, message } from "antd";
+import { Button, Select, Table, Tag, Tabs, message, notification } from "antd";
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 import farmOrderApis from "../../apis/farmOrderApis";
 import confirm from "antd/lib/modal/confirm";
+import userApis from "../../apis/userApis";
 
-const FarmList = ({ listDriver }) => {
+const FarmOrderList = () => {
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [totalRecord, setToTalRecord] = useState(1);
   const [changePlag, setChangePlag] = useState(true);
   const [dataTable, setDataTable] = useState([]);
   const data = [];
-  const user = useSelector(state => state.user);
-  let listTask = [];
+  const warehouse = useSelector((state) => state.warehouse);
+  const [listDriver, setListDriver] = useState();
+  const [listDriverClone, setListDriverClone] = useState([]);
+  const [listTask, setListTask] = useState([]);
   const { Option } = Select;
   useEffect(() => {
     setLoading(true);
-    const params = {
-      "warehouse-manager-id": user.id,
-      page: page,
-      flag: false,
-    };
-
     const fetchData = async () => {
-      const result = await farmOrderApis
-        .getFarmOrderForDelivery(params)
+      const params = {
+        wareHouseId: warehouse.id,
+        type: 1,
+      };
+      await userApis
+        .getListDriverByWarehouseId(params)
+        .then((result) => {
+          setListDriver(result);
+          let list = [];
+          result.map((driver) => {
+            list.push(driver);
+          });
+          setListDriverClone(list);
+        })
+        .catch((err) => {});
+      await farmOrderApis
+        .getFarmOrderForDelivery({ warehouseId: warehouse.id, asigned: false })
+        .then((result) => {
+          console.log(result);
+          let index = 1;
+          result &&
+            result.map((colection) => {
+              data.push({ index: index++, ...colection });
+            });
+          setDataTable(data);
+        })
         .catch((err) => {
-          message.error({
+          console.log(err);
+          notification.error({
             duration: 2,
-            content: "Có lỗi xảy ra trong quá trình tải dữ liệu!",
+            message: "Có lỗi xảy ra trong quá trình tải dữ liệu!",
           });
           setLoading(false);
         });
-      setToTalRecord(result.metadata.total);
-      result && result.data.map((farm) => {
-        data.push(farm);
-      });
-      setDataTable(data);
-      console.log(data);
+
       setLoading(false);
     };
     fetchData();
   }, [page, changePlag]);
   const hanldeSelectedDriver = (props) => {
-    listTask = listTask.filter((item) => item.farmId !== props.farmId);
-    listTask.push({ driverId: props.driverId, farmId: props.farmId });
-    listTask = listTask.filter((item) => item.driverId !== "0");
+    let list = [...listTask];
+    list = list.filter((item) => item.collectionCode !== props.collectionCode);
+    list.push({
+      driverId: props.driverId,
+      collectionCode: props.collectionCode,
+    });
+    list = list.filter((item) => item.driverId !== "0");
+    let list2 = props.listDriver;
+    list.forEach((task) => {
+      list2 = list2.filter((driver) => driver.id !== task.driverId);
+    });
+    setListTask(list);
+    setListDriver(list2);
+    console.log(list);
   };
-  const showDeleteConfirm = () => {
+  const showSaveConfirm = () => {
     confirm({
       title: "Bạn có chắc muốn lưu thay đổi này",
       icon: <ExclamationCircleOutlined />,
@@ -58,22 +85,27 @@ const FarmList = ({ listDriver }) => {
       okText: "Lưu",
       cancelText: "Hủy",
       onOk() {
+        setLoading(true);
         const saveDriverTask = async () => {
-          const result = await farmOrderApis
+          await farmOrderApis
             .assignDriver(listTask)
+            .then((result) => {
+              if (result === "Update Successfully!") {
+                notification.success({
+                  duration: 2,
+                  message: "Lưu thành công!",
+                });
+                setChangePlag(!changePlag);
+              }
+            })
             .catch((err) => {
-              message.error({
+              console.log(err);
+              notification.error({
                 duration: 2,
-                content: "Có lỗi xảy ra trong quá trình xử lý!",
+                message: "Có lỗi xảy ra trong quá trình xử lý!",
               });
             });
-          if (result === "Update Successfully!") {
-            message.success({
-              duration: 2,
-              content: "Lưu thành công!",
-            });
-            setChangePlag(!changePlag);
-          }
+          setLoading(false);
         };
         saveDriverTask();
       },
@@ -82,40 +114,35 @@ const FarmList = ({ listDriver }) => {
   };
   const handleSave = () => {
     if (listTask.length === 0) {
-      message.error({
+      notification.error({
         duration: 2,
-        content: "Vui lòng chọn tài xế phụ trách!",
+        message: "Vui lòng chọn tài xế phụ trách!",
       });
-    } else showDeleteConfirm();
+    } else showSaveConfirm();
   };
-  let count = 0;
   const columns = [
     {
-      title: "Mã nông trại",
-      dataIndex: "farmId",
-      key: "farmId",
-      
+      title: "STT",
+      dataIndex: "index",
+      key: "index",
+    },
+
+    {
+      title: "Mã nhóm đơn hàng",
+      dataIndex: "collectionCode",
+      key: "collectionCode",
     },
     {
-      title: "Tên nông trại",
-      dataIndex: "farmName",
-      key: "farmName",
-    },
-    {
-      title: "Địa chỉ",
-      dataIndex: "farmAddress",
-      key: "farmAddress",
-    },
-    {
-      title: "Số đơn hàng",
-      dataIndex: "countFarmOrder",
-      key: "countFarmOrder",
-    },
-    {
-      title: "Khối lượng",
-      dataIndex: "weight",
-      key: "weight",
+      title: "Tổng khối lượng",
+      dataIndex: "totalWeight",
+      key: "totalWeight",
       render: (text) => <div>{text + " kg"}</div>,
+    },
+    {
+      title: "Số nông trại",
+      dataIndex: "countFarm",
+      key: "countFarm",
+      render: (text, record) => <div>{record.farms.length}</div>,
     },
     {
       title: "Trạng thái",
@@ -128,13 +155,14 @@ const FarmList = ({ listDriver }) => {
       dataIndex: "driverName",
       key: "dirverName",
       render: (text, record) => (
-        <div className="campaign_name">
+        <div>
           <Select
             defaultValue="0"
             onSelect={(currentValue) => {
               hanldeSelectedDriver({
                 driverId: currentValue,
-                farmId: record.farmId,
+                collectionCode: record.collectionCode,
+                listDriver: listDriverClone,
               });
             }}
           >
@@ -158,15 +186,13 @@ const FarmList = ({ listDriver }) => {
       dataIndex: "action",
       key: "action",
       render: (text, record) => (
-        <Link to={`/farmDetails?farmId=${record.farmId}`}>Xem chi tiết</Link>
+        <Link to={`/farmOrderDetails?collectionCode=${record.collectionCode}`}>Xem chi tiết</Link>
       ),
     },
   ];
   return (
     <>
       <div>
-        {/* <h1>Các đơn hàng chưa phân công</h1> */}
-
         <Button
           type="primary"
           size="large"
@@ -196,11 +222,10 @@ const FarmList = ({ listDriver }) => {
           }}
           loading={loading}
           style={{ margin: 50 }}
-          // onRow={(record, rowIndex) => setOnRow()}
         />
       </div>
     </>
   );
 };
 
-export default FarmList;
+export default FarmOrderList;
