@@ -1,33 +1,55 @@
 import { Button, Select, Table, Tag, Tabs, message, notification } from "antd";
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { ExclamationCircleOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 import confirm from "antd/lib/modal/confirm";
 import orderApis from "../../apis/orderApis";
+import userApis from "../../apis/userApis";
 
-
-const OrderList = ({ listDriver }) => {
+const OrderList = () => {
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const [totalRecord, setToTalRecord] = useState(1);
   const [changePlag, setChangePlag] = useState(true);
   const [dataTable, setDataTable] = useState([]);
+  const [listDriver, setListDriver] = useState();
+  const [listDriverClone, setListDriverClone] = useState([]);
+  const [listTask, setListTask] = useState([]);
   const data = [];
-  const user = useSelector(state => state.user);
-  let listTask = [];
   const { Option } = Select;
+  const warehouse = useSelector((state) => state.warehouse);
   useEffect(() => {
     setLoading(true);
-    const params = {
-      warehouseManagerId: user.id,
-      page: page,
-      flag: false,
-    };
 
     const fetchData = async () => {
-      const result = await orderApis
+      const params1 = {
+        warehouseId: warehouse.id,
+        type: 1,
+      };
+      await userApis
+        .getListDriverByWarehouseId(params1)
+        .then((result) => {
+          setListDriver(result);
+          let list = [];
+          result.map((driver) => {
+            list.push(driver);
+          });
+          setListDriverClone(list);
+        })
+        .catch((err) => {});
+      const params = {
+        warehouseId: warehouse.id,
+        assigned: false,
+      };
+      await orderApis
         .getOrderList(params)
+        .then((result) => {
+          let index = 1;
+          result &&
+            result.map((collection) => {
+              data.push({ index: index++, ...collection });
+            });
+          setDataTable(data);
+        })
         .catch((err) => {
           notification.error({
             duration: 2,
@@ -35,20 +57,26 @@ const OrderList = ({ listDriver }) => {
           });
           setLoading(false);
         });
-      setToTalRecord(result.metadata.total);
-      let index = 1;
-      result && result.data.map((order) => {
-        data.push({index: index ++ , ...order});
-      });
-      setDataTable(data);
+
       setLoading(false);
     };
     fetchData();
-  }, [page, changePlag]);
+  }, [changePlag]);
   const hanldeSelectedDriver = (props) => {
-    listTask = listTask.filter((item) => item.id !== props.id);
-    listTask.push({ driverId: props.driverId, id: props.id });
-    listTask = listTask.filter((item) => item.driverId !== "0");
+    let list = [...listTask];
+    list = list.filter((item) => item.deliveryCode !== props.deliveryCode);
+    list.push({
+      driverId: props.driverId,
+      deliveryCode: props.deliveryCode,
+    });
+    list = list.filter((item) => item.driverId !== "0");
+    let list2 = props.listDriver;
+    list.forEach((task) => {
+      list2 = list2.filter((driver) => driver.id !== task.driverId);
+    });
+    setListTask(list);
+    setListDriver(list2);
+    console.log(listTask);
   };
   const showDeleteConfirm = () => {
     confirm({
@@ -60,14 +88,13 @@ const OrderList = ({ listDriver }) => {
       onOk() {
         setLoading(true);
         const saveDriverTask = async () => {
-          const result = await orderApis
-            .assignDriver(listTask)
-            .catch((err) => {
-              notification.error({
-                duration: 2,
-                message: "Có lỗi xảy ra trong quá trình xử lý!",
-              });
+          console.log(listTask);
+          const result = await orderApis.assignDriver(listTask).catch((err) => {
+            notification.error({
+              duration: 2,
+              message: "Có lỗi xảy ra trong quá trình xử lý!",
             });
+          });
           if (result === "Update successfully!") {
             notification.success({
               duration: 2,
@@ -95,45 +122,47 @@ const OrderList = ({ listDriver }) => {
       title: "STT",
       dataIndex: "index",
       key: "index",
-      
     },
     {
-      title: "Mã đơn hàng",
-      dataIndex: "code",
-      key: "code",
-      
+      title: "Mã nhóm đơn hàng",
+      dataIndex: "deliveryCode",
+      key: "deliveryCode",
     },
     {
-      title: "Tên khách hàng",
-      dataIndex: "customerName",
-      key: "customerName",
-    },
-    {
-      title: "Địa chỉ",
-      dataIndex: "address",
-      key: "address",
-    },
-    {
-      title: "Số điện thoại",
-      dataIndex: "phone",
-      key: "phone",
-    },
-    {
-      title: "Khối lượng",
-      dataIndex: "weight",
-      key: "weight",
+      title: "Tổng khối lượng",
+      dataIndex: "totalWeight",
+      key: "totalWeight",
       render: (text) => <div>{text + " kg"}</div>,
     },
     {
-      title: "Giá trị",
-      dataIndex: "total",
-      key: "total",
+      title: "Số điểm đến",
+      dataIndex: "countAddress",
+      key: "countAddress",
+      render: (text, record) => <div>{record.addresses.length}</div>,
+    },
+    {
+      title: "Số đơn hàng",
+      dataIndex: "countOrder",
+      key: "countOrder",
+      render: (text, record) => {
+        let countOrder = 0;
+        record.addresses.map((address) => {
+          countOrder = countOrder + address.orders.length;
+        });
+        return <div>{countOrder}</div>;
+      },
+    },
+    {
+      title: "Khối lượng",
+      dataIndex: "totalWeight",
+      key: "totalWeight",
+      render: (text) => <div>{text + " kg"}</div>,
     },
     {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
-      render: (text) => <Tag color="geekblue">{text}</Tag>,
+      render: (text) => <Tag color="orange">{text}</Tag>,
     },
     {
       title: "Người phụ trách",
@@ -146,7 +175,8 @@ const OrderList = ({ listDriver }) => {
             onSelect={(currentValue) => {
               hanldeSelectedDriver({
                 driverId: currentValue,
-                id: record.id,
+                deliveryCode: record.deliveryCode,
+                listDriver: listDriverClone,
               });
             }}
           >
@@ -170,15 +200,13 @@ const OrderList = ({ listDriver }) => {
       dataIndex: "action",
       key: "action",
       render: (text, record) => (
-        <Link to={`/orderDetails?id=${record.id}`}>Xem chi tiết</Link>
+        <Link to={`/orderDetails?deliveryCode=${record.deliveryCode}`}>Xem chi tiết</Link>
       ),
     },
   ];
   return (
     <>
       <div>
-        {/* <h1>Các đơn hàng chưa phân công</h1> */}
-
         <Button
           type="primary"
           size="large"
@@ -201,14 +229,8 @@ const OrderList = ({ listDriver }) => {
           pagination={{
             position: ["bottomCenter"],
             pageSize: 10,
-            total: totalRecord,
-            onChange: (page) => {
-              setPage(page);
-            },
           }}
           loading={loading}
-          style={{ margin: 50 }}
-          // onRow={(record, rowIndex) => setOnRow()}
         />
       </div>
     </>

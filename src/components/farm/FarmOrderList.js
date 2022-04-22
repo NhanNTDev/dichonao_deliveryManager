@@ -9,11 +9,8 @@ import userApis from "../../apis/userApis";
 
 const FarmOrderList = () => {
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const [totalRecord, setToTalRecord] = useState(1);
   const [changePlag, setChangePlag] = useState(true);
   const [dataTable, setDataTable] = useState([]);
-  const data = [];
   const warehouse = useSelector((state) => state.warehouse);
   const [listDriver, setListDriver] = useState();
   const [listDriverClone, setListDriverClone] = useState([]);
@@ -23,7 +20,7 @@ const FarmOrderList = () => {
     setLoading(true);
     const fetchData = async () => {
       const params = {
-        wareHouseId: warehouse.id,
+        warehouseId: warehouse.id,
         type: 1,
       };
       await userApis
@@ -36,12 +33,18 @@ const FarmOrderList = () => {
           });
           setListDriverClone(list);
         })
-        .catch((err) => {});
+        .catch((err) => {
+          notification.error({
+            duration: 2,
+            message: "Có lỗi xảy ra trong quá trình tải tài xế!",
+            style: { fontSize: 16 },
+          });
+        });
       await farmOrderApis
-        .getFarmOrderForDelivery({ warehouseId: warehouse.id, asigned: false })
+        .getFarmOrderForDelivery({ warehouseId: warehouse.id, assigned: false })
         .then((result) => {
-          console.log(result);
           let index = 1;
+          let data = [];
           result &&
             result.map((colection) => {
               data.push({ index: index++, ...colection });
@@ -49,18 +52,15 @@ const FarmOrderList = () => {
           setDataTable(data);
         })
         .catch((err) => {
-          console.log(err);
           notification.error({
             duration: 2,
             message: "Có lỗi xảy ra trong quá trình tải dữ liệu!",
           });
-          setLoading(false);
         });
-
       setLoading(false);
     };
     fetchData();
-  }, [page, changePlag]);
+  }, [changePlag]);
   const hanldeSelectedDriver = (props) => {
     let list = [...listTask];
     list = list.filter((item) => item.collectionCode !== props.collectionCode);
@@ -75,7 +75,6 @@ const FarmOrderList = () => {
     });
     setListTask(list);
     setListDriver(list2);
-    console.log(list);
   };
   const showSaveConfirm = () => {
     confirm({
@@ -95,17 +94,16 @@ const FarmOrderList = () => {
                   duration: 2,
                   message: "Lưu thành công!",
                 });
-                setChangePlag(!changePlag);
               }
             })
             .catch((err) => {
-              console.log(err);
               notification.error({
                 duration: 2,
                 message: "Có lỗi xảy ra trong quá trình xử lý!",
               });
             });
           setLoading(false);
+          setChangePlag(!changePlag);
         };
         saveDriverTask();
       },
@@ -186,7 +184,9 @@ const FarmOrderList = () => {
       dataIndex: "action",
       key: "action",
       render: (text, record) => (
-        <Link to={`/farmOrderDetails?collectionCode=${record.collectionCode}`}>Xem chi tiết</Link>
+        <Link to={`/farmOrderDetails?collectionCode=${record.collectionCode}`}>
+          Xem chi tiết
+        </Link>
       ),
     },
   ];
@@ -215,10 +215,6 @@ const FarmOrderList = () => {
           pagination={{
             position: ["bottomCenter"],
             pageSize: 10,
-            total: totalRecord,
-            onChange: (page) => {
-              setPage(page);
-            },
           }}
           loading={loading}
           style={{ margin: 50 }}

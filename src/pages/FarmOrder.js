@@ -8,20 +8,6 @@ import FarmOrderListAssigned from "../components/farm/FarmOrderListAssigned";
 const { TabPane } = Tabs;
 
 const FarmOrder = () => {
-  const [listDriver, setListDriver] = useState();
-
-  const warehouse = useSelector((state) => state.warehouse);
-  // useEffect(() => {
-  //   const fetchDriver = async () => {
-  //     const params = {
-  //       wareHouseId: warehouse.id,
-  //       type: 1,
-  //     };
-  //     const result = await userApis.getListDriverByWarehouseId(params).then(result);
-  //     setListDriver(result);
-  //   };
-  //   fetchDriver();
-  // }, []);
 
   return (
     <>

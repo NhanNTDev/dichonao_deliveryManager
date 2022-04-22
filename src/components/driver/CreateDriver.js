@@ -30,7 +30,6 @@ const CreateDriver = ({ successCallback }) => {
     setGender("Nam");
     setAddress("");
     setName("");
-    setType(1);
     setValidateMsg("");
   };
   const handleOk = () => {

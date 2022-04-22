@@ -18,7 +18,7 @@ const Dashboard = () => {
   useEffect(() => {
     const getDashboardCount = async () => {
       await warehouseApis
-        .getDashboardCount(user.id)
+        .getDashboardCount(warehouse.id)
         .then((result) => {
           setCount(result);
         })

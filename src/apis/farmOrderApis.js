@@ -2,7 +2,7 @@ import axiosClient from "./axiosClient";
 
 const farmOrderApis = {
   getFarmOrderForDelivery(params) {
-    const url = `/farm-orders/warehouse-manager?warehouse-id=${params.warehouseId}&asigned=${params.asigned}`;
+    const url = `/farm-orders/warehouse-manager?warehouse-id=${params.warehouseId}&assigned=${params.assigned}`;
     return axiosClient.get(url);
   },
   getFarmOderByFarmId(id) {

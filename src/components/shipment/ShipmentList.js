@@ -9,12 +9,9 @@ import userApis from "../../apis/userApis";
 
 const ShipmentList = () => {
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const [totalRecord, setToTalRecord] = useState(1);
   const [changePlag, setChangePlag] = useState(true);
   const [dataTable, setDataTable] = useState([]);
   const data = [];
-  const user = useSelector((state) => state.user);
   const [listDriver, setListDriver] = useState();
   const warehouse = useSelector((state) => state.warehouse);
   const [listDriverClone, setListDriverClone] = useState([]);
@@ -26,7 +23,7 @@ const ShipmentList = () => {
 
     const fetchData = async () => {
       const params1 = {
-        wareHouseId: warehouse.id,
+        warehouseId: warehouse.id,
         type: 2,
       };
       await userApis.getListDriverByWarehouseId(params1).then((result) => {
@@ -38,17 +35,15 @@ const ShipmentList = () => {
         setListDriverClone(list);
       }).catch(err => {});
       const params2 = {
-        warehouseManagerId: user.id,
-        page: page,
-        flag: false,
+        warehouseId: warehouse.id,
+        assigned: false,
       };
       await shipmentsApis
         .getShipmentList(params2)
         .then((result) => {
-          setToTalRecord(result.metadata.total);
           let index = 1;
           result &&
-            result.data.map((shipment) => {
+            result.map((shipment) => {
               data.push({ index: index++, ...shipment });
             });
           setDataTable(data);
@@ -64,7 +59,7 @@ const ShipmentList = () => {
       setLoading(false);
     };
     fetchData();
-  }, [page, changePlag]);
+  }, [changePlag]);
   const hanldeSelectedDriver = (props) => {
     let list = [...listTask];
     list = list.filter((item) => item.id !== props.id);
@@ -195,11 +190,6 @@ const ShipmentList = () => {
       dataIndex: "from",
       key: "from",
     },
-    // {
-    //   title: "Điểm đến",
-    //   dataIndex: "to",
-    //   key: "to",
-    // },
     {
       title: "Tổng Khối lượng",
       dataIndex: "totalWeight",
@@ -286,13 +276,8 @@ const ShipmentList = () => {
           pagination={{
             position: ["bottomCenter"],
             pageSize: 10,
-            total: totalRecord,
-            onChange: (page) => {
-              setPage(page);
-            },
           }}
           loading={loading}
-          style={{ margin: 50 }}
         />
       </div>
     </>

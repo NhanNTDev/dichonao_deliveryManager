@@ -1,24 +1,21 @@
-import { Table, message, notification } from "antd";
+import { Table, notification } from "antd";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import shipmentsApis from "../../apis/shipmentsApis";
 
 const ShipmentListAssigned = () => {
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const [totalRecord, setToTalRecord] = useState(1);
   const [changePlag, setChangePlag] = useState(true);
   const [dataTable, setDataTable] = useState([]);
-  const user = useSelector((state) => state.user);
+  const warehouse = useSelector(state => state.warehouse);
   const data = [];
 
   useEffect(() => {
     setLoading(true);
     const params = {
-      warehouseManagerId: user.id,
-      page: page,
-      flag: true,
+      warehouseId: warehouse.id,
+      assigned: true,
     };
 
     const fetchData = async () => {
@@ -31,17 +28,16 @@ const ShipmentListAssigned = () => {
           });
           setLoading(false);
         });
-      setToTalRecord(result.metadata.total);
       let index = 1;
       result &&
-        result.data.map((shipment) => {
+        result.map((shipment) => {
           data.push({ index: index++, ...shipment });
         });
       setDataTable(data);
       setLoading(false);
     };
     fetchData();
-  }, [page, changePlag]);
+  }, [ changePlag]);
 
   const columns = [
     {
@@ -59,11 +55,6 @@ const ShipmentListAssigned = () => {
       dataIndex: "from",
       key: "from",
     },
-    // {
-    //   title: "Điểm đến",
-    //   dataIndex: "to",
-    //   key: "to",
-    // },
     {
       title: "Tổng Khối lượng",
       dataIndex: "totalWeight",
@@ -87,21 +78,14 @@ const ShipmentListAssigned = () => {
   return (
     <>
       <div>
-        {/* <h1>Các đơn hàng chưa phân công</h1> */}
         <Table
           columns={columns}
           dataSource={dataTable}
           pagination={{
             position: ["bottomCenter"],
             pageSize: 10,
-            total: totalRecord,
-            onChange: (page) => {
-              setPage(page);
-            },
           }}
           loading={loading}
-          style={{ margin: 50 }}
-          // onRow={(record, rowIndex) => setOnRow()}
         />
       </div>
     </>

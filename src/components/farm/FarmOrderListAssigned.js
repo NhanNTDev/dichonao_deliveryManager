@@ -16,7 +16,7 @@ const FarmOrderListAssigned = () => {
     
     const fetchData = async () => {
       await farmOrderApis
-        .getFarmOrderForDelivery({warehouseId: warehouse.id, asigned: true})
+        .getFarmOrderForDelivery({warehouseId: warehouse.id, assigned: true})
         .then((result) => {
           console.log(result);
           let index = 1;

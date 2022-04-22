@@ -10,26 +10,13 @@ const { TabPane } = Tabs;
 
 
 const Order = () => {
-  const [listDriver, setListDriver] = useState();
-  const warehouse = useSelector(state => state.warehouse);
-  useEffect(() => {
-    
-    const fetchDriver = async () => {
-      const params = {
-        wareHouseId: warehouse.id,
-        type: 1,
-    }
-      const result = await userApis.getListDriverForTask3(params);
-      setListDriver(result);
-    }
-    fetchDriver();
-  }, []);
+  
   return (
     <>
       <div className="campaignList">
         <Tabs defaultActiveKey="1" centered>
           <TabPane tab="Đơn hàng chưa phân công" key="1">
-            <OrderList listDriver={listDriver}/>
+            <OrderList/>
           </TabPane>
           <TabPane tab="Đơn hàng đã phân công" key="2">
             <OrderListAssigned/>

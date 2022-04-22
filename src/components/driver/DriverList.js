@@ -19,7 +19,7 @@ const DriverList = ({ type }) => {
   useEffect(() => {
     setLoading(true);
     const params = {
-      wareHouseId: warehouse.id,
+      warehouseId: warehouse.id,
       type: type,
     };
 
