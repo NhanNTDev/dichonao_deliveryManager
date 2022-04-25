@@ -217,7 +217,7 @@ const FarmOrderList = () => {
             pageSize: 10,
           }}
           loading={loading}
-          style={{ margin: 50 }}
+          style={{ margin: 20 }}
         />
       </div>
     </>

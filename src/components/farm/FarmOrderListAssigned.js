@@ -18,17 +18,14 @@ const FarmOrderListAssigned = () => {
       await farmOrderApis
         .getFarmOrderForDelivery({warehouseId: warehouse.id, assigned: true})
         .then((result) => {
-          console.log(result);
           let index = 1;
           result &&
             result.map((colection) => {
               data.push({ index: index++, ...colection });
             });
           setDataTable(data);
-          console.log(data);
         })
         .catch((err) => {
-          console.log(err);
           notification.error({
             duration: 2,
             message: "Có lỗi xảy ra trong quá trình tải dữ liệu!",
@@ -99,7 +96,7 @@ const FarmOrderListAssigned = () => {
             },
           }}
           loading={loading}
-          style={{ margin: 50 }}
+          style={{ margin: 20 }}
         />
       </div>
     </>

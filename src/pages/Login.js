@@ -76,7 +76,7 @@ const Login = () => {
     <>
       <br />
       <br />
-      <h1 style={{ textAlign: "center" }}>Trang đăng nhập quản lý kho!</h1>
+      <h1 style={{ textAlign: "center" }}>Trang đăng nhập quản lý kho</h1>
       <br />
       <div style={{ textAlign: "center" }}>
         {loading ? (

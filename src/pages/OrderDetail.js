@@ -68,6 +68,7 @@ const OrderDetail = () => {
         dataSource={listAddress}
         pagination={{ position: ["bottomCenter"], pageSize: 10 }}
         loading={loading}
+        style={{ margin: 20 }}
       />
     </div>
   );

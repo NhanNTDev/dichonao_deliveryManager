@@ -33,7 +33,6 @@ const CreateDriver = ({ successCallback }) => {
     setValidateMsg("");
   };
   const handleOk = () => {
-    setLoading(true);
     const valid = validateAll();
     if (!valid) return;
     const data = {

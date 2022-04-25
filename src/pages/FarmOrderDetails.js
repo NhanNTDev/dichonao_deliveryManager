@@ -9,7 +9,7 @@ const FarmOrderDetails = () => {
   const [searchParams] = useSearchParams();
   const [listFarm, setListFarm] = useState();
   const collectionCode = searchParams.get("collectionCode");
-  console.log(collectionCode);
+
 
 
   
@@ -71,6 +71,7 @@ const FarmOrderDetails = () => {
         dataSource={listFarm}
         pagination={{ position: ["bottomCenter"], pageSize: 10 }}
         loading={loading}
+        style={{ margin: 20 }}
       />
     </div>
   );

@@ -35,7 +35,6 @@ const ShipmentDetails = () => {
     setLoading(true);
     const fetchData = async () => {
       await shipmentsApis.getShipmentDetails(shipmentId).then((result) => {
-        console.log(result);
         let index = 1;
         let listOrder = [];
         result.orders
@@ -206,6 +205,7 @@ const ShipmentDetails = () => {
             dataSource={dataTable}
             pagination={{ position: ["bottomCenter"], pageSize: 10 }}
             loading={loading}
+            style={{ margin: 20 }}
           />
         </>
       )}

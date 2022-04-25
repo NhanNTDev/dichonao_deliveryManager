@@ -87,7 +87,6 @@ const ShipmentList = () => {
           await shipmentsApis
             .deleteShipment(warehouse.id)
             .then((rs) => {
-              console.log(rs);
               deleteSuccess = true;
             })
             .catch(() => {
@@ -101,7 +100,6 @@ const ShipmentList = () => {
             await shipmentsApis
               .createShipment(warehouse.id)
               .then((result) => {
-                console.log(result);
                 setChangePlag(!changePlag);
               })
               .catch((err) => {
@@ -142,7 +140,6 @@ const ShipmentList = () => {
       cancelText: "Hủy",
       onOk() {
         setLoading(true);
-        console.log(listTask);
         const saveDriverTask = async () => {
           const result = await shipmentsApis
             .assignDriver(listTask)
@@ -278,6 +275,7 @@ const ShipmentList = () => {
             pageSize: 10,
           }}
           loading={loading}
+          style={{ margin: 20 }}
         />
       </div>
     </>

@@ -95,14 +95,15 @@ const WelcomePage = () => {
               marginLeft: -300,
             }}
           >
-            <div
-              style={{ textAlign: "right", marginRight: 250, marginTop: 20 }}
-            >
-              <h5 style={{ display: "inline" }}>
-                Chào mừng <strong style={{ color: "red" }}>{user.name}</strong>{" "}
-                {"    "}{" "}
-              </h5>
-              <Button onClick={handleLogout}>Đăng xuất</Button>
+            <div style={{ display: "inline" }}>
+              <img src="/logo.png" alt="logo" style={{ marginTop: 30, marginLeft: 50 }}></img>
+              <div className="d-flex justify-content-end" style={{marginTop: -30, marginRight: 100}}>
+                <h5 style={{ display: "inline" }} style={{marginRight: 30}}>
+                  Chào mừng{" "}
+                  <strong style={{ color: "red" }}>{user.name}</strong> {"    "}{" "}
+                </h5>
+                <Button onClick={handleLogout}>Đăng xuất</Button>
+              </div>
             </div>
           </Header>
         )}
@@ -112,7 +113,7 @@ const WelcomePage = () => {
             minHeight: 280,
           }}
         >
-          <div className="trigger" onClick={toggle}>
+          <div className="trigger" onClick={toggle} style={{ width: 50 }}>
             {user !== null &&
               warehouse !== null &&
               (state.collapsed ? (

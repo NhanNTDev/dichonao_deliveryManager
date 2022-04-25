@@ -104,7 +104,6 @@ const OrderListAssigned = () => {
   return (
     <>
       <div className="wrapper">
-        {/* <h1>Các đơn hàng chưa phân công</h1> */}
         <Table
           columns={columns}
           dataSource={dataTable}
@@ -113,6 +112,7 @@ const OrderListAssigned = () => {
             pageSize: 10,
           }}
           loading={loading}
+          style={{ margin: 20 }}
         />
       </div>
     </>

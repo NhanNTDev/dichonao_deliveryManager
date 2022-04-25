@@ -45,7 +45,6 @@ const DriverList = ({ type }) => {
   }, [page, changePlag]);
 
   const showBanConfirm = (props) => {
-    console.log(props);
     confirm({
       title: "Xác nhận khóa tài khoản",
       icon: <ExclamationCircleOutlined />,
@@ -78,7 +77,6 @@ const DriverList = ({ type }) => {
   };
 
   const showUnbanConfirm = (props) => {
-    console.log(props);
     confirm({
       title: "Xác nhận mở khóa tài khoản",
       icon: <ExclamationCircleOutlined />,

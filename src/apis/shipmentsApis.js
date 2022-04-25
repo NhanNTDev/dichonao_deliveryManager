@@ -21,7 +21,6 @@ const shipmentsApis = {
   },
   createShipment(warehouseId) {
     const url = `/shipments/routing-problem/${warehouseId}`;
-    console.log(url);
     return axiosClient.post(url);
   }
   

@@ -86,6 +86,7 @@ const ShipmentListAssigned = () => {
             pageSize: 10,
           }}
           loading={loading}
+          style={{ margin: 20 }}
         />
       </div>
     </>

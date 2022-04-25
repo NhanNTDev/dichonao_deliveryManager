@@ -76,7 +76,6 @@ const OrderList = () => {
     });
     setListTask(list);
     setListDriver(list2);
-    console.log(listTask);
   };
   const showDeleteConfirm = () => {
     confirm({
@@ -88,7 +87,7 @@ const OrderList = () => {
       onOk() {
         setLoading(true);
         const saveDriverTask = async () => {
-          console.log(listTask);
+  
           const result = await orderApis.assignDriver(listTask).catch((err) => {
             notification.error({
               duration: 2,
@@ -231,6 +230,7 @@ const OrderList = () => {
             pageSize: 10,
           }}
           loading={loading}
+          style={{ margin: 20 }}
         />
       </div>
     </>
