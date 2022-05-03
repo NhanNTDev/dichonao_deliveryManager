@@ -1,25 +1,25 @@
 import { Tabs } from "antd";
-import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import userApis from "../apis/userApis";
+import { useState } from "react";
 import OrderList from "../components/order/OrderList";
 import OrderListAssigned from "../components/order/OrderListAssigned";
 
 const { TabPane } = Tabs;
 
-
-
 const Order = () => {
-  
+  const [reload, setReload] = useState(true);
   return (
     <>
       <div className="campaignList">
-        <Tabs defaultActiveKey="1" centered>
+        <Tabs
+          defaultActiveKey="1"
+          centered
+          onTabClick={() => setReload(!reload)}
+        >
           <TabPane tab="Đơn hàng chưa phân công" key="1">
-            <OrderList/>
+            <OrderList reload={reload} />
           </TabPane>
           <TabPane tab="Đơn hàng đã phân công" key="2">
-            <OrderListAssigned/>
+            <OrderListAssigned reload={reload} />
           </TabPane>
         </Tabs>
 

@@ -7,7 +7,7 @@ import farmOrderApis from "../../apis/farmOrderApis";
 import confirm from "antd/lib/modal/confirm";
 import userApis from "../../apis/userApis";
 
-const FarmOrderList = () => {
+const FarmOrderList = ({reload}) => {
   const [loading, setLoading] = useState(false);
   const [changePlag, setChangePlag] = useState(true);
   const [dataTable, setDataTable] = useState([]);
@@ -60,7 +60,7 @@ const FarmOrderList = () => {
       setLoading(false);
     };
     fetchData();
-  }, [changePlag]);
+  }, [changePlag, reload]);
   const hanldeSelectedDriver = (props) => {
     let list = [...listTask];
     list = list.filter((item) => item.collectionCode !== props.collectionCode);

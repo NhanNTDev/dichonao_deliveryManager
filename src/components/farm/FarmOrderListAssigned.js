@@ -4,19 +4,17 @@ import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import farmOrderApis from "../../apis/farmOrderApis";
 
-const FarmOrderListAssigned = () => {
+const FarmOrderListAssigned = ({ reload }) => {
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const [changePlag, setChangePlag] = useState(true);
   const [dataTable, setDataTable] = useState([]);
   const data = [];
-  const warehouse = useSelector(state => state.warehouse)
+  const warehouse = useSelector((state) => state.warehouse);
   useEffect(() => {
     setLoading(true);
-    
+
     const fetchData = async () => {
       await farmOrderApis
-        .getFarmOrderForDelivery({warehouseId: warehouse.id, assigned: true})
+        .getFarmOrderForDelivery({ warehouseId: warehouse.id, assigned: true })
         .then((result) => {
           let index = 1;
           result &&
@@ -36,14 +34,14 @@ const FarmOrderListAssigned = () => {
       setLoading(false);
     };
     fetchData();
-  }, [page, changePlag]);
+  }, [reload]);
   const columns = [
     {
       title: "STT",
       dataIndex: "index",
       key: "index",
     },
-  
+
     {
       title: "Mã nhóm đơn hàng",
       dataIndex: "collectionCode",
@@ -77,7 +75,9 @@ const FarmOrderListAssigned = () => {
       dataIndex: "action",
       key: "action",
       render: (text, record) => (
-        <Link to={`/farmOrderDetails?collectionCode=${record.collectionCode}`}>Xem chi tiết</Link>
+        <Link to={`/farmOrderDetails?collectionCode=${record.collectionCode}`}>
+          Xem chi tiết
+        </Link>
       ),
     },
   ];
@@ -90,10 +90,6 @@ const FarmOrderListAssigned = () => {
           pagination={{
             position: ["bottomCenter"],
             pageSize: 10,
-            total: dataTable.length,
-            onChange: (page) => {
-              setPage(page);
-            },
           }}
           loading={loading}
           style={{ margin: 20 }}

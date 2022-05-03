@@ -4,9 +4,8 @@ import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import shipmentsApis from "../../apis/shipmentsApis";
 
-const ShipmentListAssigned = () => {
+const ShipmentListAssigned = ({reload}) => {
   const [loading, setLoading] = useState(false);
-  const [changePlag, setChangePlag] = useState(true);
   const [dataTable, setDataTable] = useState([]);
   const warehouse = useSelector(state => state.warehouse);
   const data = [];
@@ -37,7 +36,7 @@ const ShipmentListAssigned = () => {
       setLoading(false);
     };
     fetchData();
-  }, [ changePlag]);
+  }, [ reload]);
 
   const columns = [
     {

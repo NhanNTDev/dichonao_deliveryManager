@@ -7,7 +7,7 @@ import { useSelector } from "react-redux";
 import shipmentsApis from "../../apis/shipmentsApis";
 import userApis from "../../apis/userApis";
 
-const ShipmentList = () => {
+const ShipmentList = ({reload}) => {
   const [loading, setLoading] = useState(false);
   const [changePlag, setChangePlag] = useState(true);
   const [dataTable, setDataTable] = useState([]);
@@ -59,7 +59,7 @@ const ShipmentList = () => {
       setLoading(false);
     };
     fetchData();
-  }, [changePlag]);
+  }, [changePlag, reload]);
   const hanldeSelectedDriver = (props) => {
     let list = [...listTask];
     list = list.filter((item) => item.id !== props.id);

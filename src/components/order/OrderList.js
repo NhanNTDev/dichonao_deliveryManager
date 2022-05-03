@@ -7,7 +7,7 @@ import confirm from "antd/lib/modal/confirm";
 import orderApis from "../../apis/orderApis";
 import userApis from "../../apis/userApis";
 
-const OrderList = () => {
+const OrderList = ({reload}) => {
   const [loading, setLoading] = useState(false);
   const [changePlag, setChangePlag] = useState(true);
   const [dataTable, setDataTable] = useState([]);
@@ -61,7 +61,7 @@ const OrderList = () => {
       setLoading(false);
     };
     fetchData();
-  }, [changePlag]);
+  }, [changePlag, reload]);
   const hanldeSelectedDriver = (props) => {
     let list = [...listTask];
     list = list.filter((item) => item.deliveryCode !== props.deliveryCode);
@@ -150,12 +150,6 @@ const OrderList = () => {
         });
         return <div>{countOrder}</div>;
       },
-    },
-    {
-      title: "Khối lượng",
-      dataIndex: "totalWeight",
-      key: "totalWeight",
-      render: (text) => <div>{text + " kg"}</div>,
     },
     {
       title: "Trạng thái",

@@ -6,14 +6,14 @@ import confirm from "antd/lib/modal/confirm";
 import userApis from "../../apis/userApis";
 import CreateDriver from "../driver/CreateDriver";
 
-const DriverList = ({ type }) => {
+const DriverList = ({ type, reload }) => {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [changePlag, setChangePlag] = useState(true);
   const [dataTable, setDataTable] = useState([]);
   const data = [];
   const warehouse = useSelector((state) => state.warehouse);
-  const reload = () => {
+  const reloadApi = () => {
     setChangePlag(!changePlag);
   };
   useEffect(() => {
@@ -42,7 +42,7 @@ const DriverList = ({ type }) => {
       setLoading(false);
     };
     fetchData();
-  }, [page, changePlag]);
+  }, [page, changePlag, reload]);
 
   const showBanConfirm = (props) => {
     confirm({
@@ -54,6 +54,7 @@ const DriverList = ({ type }) => {
       okType: "danger",
       onOk() {
         const banDriver = async () => {
+          setLoading(true);
           const result = await userApis
             .banOrUnbanUser(props.id)
             .catch((err) => {
@@ -69,6 +70,7 @@ const DriverList = ({ type }) => {
             });
             setChangePlag(!changePlag);
           }
+          setLoading(false);
         };
         banDriver();
       },
@@ -85,6 +87,7 @@ const DriverList = ({ type }) => {
       cancelText: "Hủy",
       onOk() {
         const unbanDriver = async () => {
+          setLoading(true);
           const result = await userApis
             .banOrUnbanUser(props.id)
             .catch((err) => {
@@ -100,6 +103,7 @@ const DriverList = ({ type }) => {
             });
             setChangePlag(!changePlag);
           }
+          setLoading(false);
         };
         unbanDriver();
       },
@@ -184,7 +188,7 @@ const DriverList = ({ type }) => {
   return (
     <>
       <div>
-        <CreateDriver successCallback={reload} />
+        <CreateDriver successCallback={reloadApi} />
         <Table
           columns={columns}
           dataSource={dataTable}

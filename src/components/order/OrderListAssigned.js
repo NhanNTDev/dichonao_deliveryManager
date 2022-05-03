@@ -4,9 +4,8 @@ import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import orderApis from "../../apis/orderApis";
 
-const OrderListAssigned = () => {
+const OrderListAssigned = ({reload}) => {
   const [loading, setLoading] = useState(false);
-  const [changePlag, setChangePlag] = useState(true);
   const [dataTable, setDataTable] = useState([]);
   const data = [];
   const warehouse = useSelector((state) => state.warehouse);
@@ -39,7 +38,7 @@ const OrderListAssigned = () => {
       setLoading(false);
     };
     fetchData();
-  }, [changePlag]);
+  }, [reload]);
   const columns = [
     {
       title: "STT",
@@ -74,12 +73,6 @@ const OrderListAssigned = () => {
         });
         return <div>{countOrder}</div>;
       },
-    },
-    {
-      title: "Khối lượng",
-      dataIndex: "totalWeight",
-      key: "totalWeight",
-      render: (text) => <div>{text + " kg"}</div>,
     },
     {
       title: "Trạng thái",
